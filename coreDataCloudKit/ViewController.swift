@@ -44,9 +44,9 @@ class ViewController: UIViewController {
     func saveName(with name: String) {
         let managedContext = dataManager.persistentContainer.viewContext
         let entity = NSEntityDescription.entity(forEntityName: "Person", in: managedContext)!
-        let movie = NSManagedObject(entity: entity, insertInto: managedContext)
+        let namePerson = NSManagedObject(entity: entity, insertInto: managedContext)
         
-        movie.setValue(name, forKey: "name")
+        namePerson.setValue(name, forKey: "name")
         
         do {
             try managedContext.save()
@@ -97,6 +97,30 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+           let person = self.items[indexPath.row].value(forKey: "name") as? String
+           let context = self.dataManager.persistentContainer.viewContext
+
+           let alert = UIAlertController(title: "Edit person", message: "Edit name?", preferredStyle: .alert)
+           alert.addTextField()
+           
+           let textField = alert.textFields![0]
+           textField.text = person
+           let saveButton = UIAlertAction(title: "save", style: .default) { (action) in
+               let textField = alert.textFields![0]
+               self.items[indexPath.row].setValue(textField.text, forKey: "name")
+               do{
+                   try context.save()
+               }  catch let error {
+                   print("Save data error :", error)
+               }
+               self.loadData()
+           }
+           alert.addAction(saveButton)
+
+           
+           self.present(alert, animated: true, completion: nil)
+       }
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let action = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
             let personToRemove = self.items[indexPath.row]
