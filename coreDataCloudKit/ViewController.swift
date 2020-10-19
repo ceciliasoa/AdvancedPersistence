@@ -10,6 +10,7 @@ import CoreData
 
 class ViewController: UIViewController {
     var dataManager = DataManeger()
+   
     @IBOutlet weak var table: UITableView!
     
     
@@ -18,6 +19,8 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         table.dataSource = self
         table.delegate = self
+        
+        
 //        deleteAllData("Person")
 //        items.removeAll()
         self.loadData()
@@ -94,21 +97,20 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let person = self.items[indexPath.row].value(forKey: "name") as? String
-        let alert = UIAlertController(title: "Edit person", message: "Edit name?", preferredStyle: .alert)
-        alert.addTextField()
-        
-        let textField = alert.textFields![0]
-        textField.text = person
-        let saveButton = UIAlertAction(title: "save", style: .default) { (action) in
-            let textField = alert.textFields![0]
-            let name = textField.text ?? ""
-            self.saveName(with: name)
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let action = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHandler) in
+            let personToRemove = self.items[indexPath.row]
+            let context = self.dataManager.persistentContainer.viewContext
+            context.delete(personToRemove)
+            do{
+                try context.save()
+            }  catch let error {
+                print("Delete data error :", error)
+            }
             self.loadData()
+            
         }
-        
-        self.present(alert, animated: true, completion: nil)
+        return UISwipeActionsConfiguration(actions: [action])
     }
 }
 
